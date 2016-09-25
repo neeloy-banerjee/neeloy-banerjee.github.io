@@ -1,0 +1,13 @@
+# Site settings
+title: Neeloy blog
+email:
+description: "Blog attempt 4"
+baseurl: "" # the subpath of your site, e.g. /blog
+url: "http://neeloy-banerjee.github.io" 
+twitter_username: 
+github_username:  neeloy-banerjee
+
+# Build settings
+markdown: kramdown
+theme: minima
+
