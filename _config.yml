@@ -1,10 +1,10 @@
 # Site settings
-title: Neeloy blog
+title: Neeloy's homepage
 email:
-description: "Blog attempt 10"
+description: "" # On the 'about' section
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://neeloy-banerjee.github.io" 
-twitter_username: 
+twitter_username: NeeloyBanerjee
 github_username:  neeloy-banerjee
 
 # Build settings
