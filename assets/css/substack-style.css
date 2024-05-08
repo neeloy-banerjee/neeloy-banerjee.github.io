@@ -1,0 +1,58 @@
+/* Substack-Style CSS */
+body {
+    font-family: Georgia, "Times New Roman", Times, serif;
+    color: #333;
+    background-color: #f9f9f9;
+    margin: 40px;
+}
+
+.container {
+    max-width: 650px;
+    margin: auto;
+    background-color: #fff;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.header, .footer {
+    text-align: center;
+    padding: 20px 0;
+}
+
+.header h1, .footer p {
+    margin: 0;
+}
+
+.article {
+    margin-top: 20px;
+}
+
+.post-title {
+    font-size: 24px;
+    color: #000;
+}
+
+.post-meta {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.post-content {
+    line-height: 1.6;
+    font-size: 16px;
+}
+
+a {
+    color: #1a0dab;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+ul {
+    padding-left: 20px;
+}
+
