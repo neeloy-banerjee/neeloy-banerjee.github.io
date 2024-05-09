@@ -4,12 +4,7 @@ title: About
 permalink: /about/
 ---
 
-This is the base Jekyll theme. You can find out more info about customizing your Jekyll theme, as well as basic Jekyll usage documentation at [jekyllrb.com](http://jekyllrb.com/)
+# About me
 
-You can find the source code for the Jekyll new theme at:
-{% include icon-github.html username="jekyll" %} /
-[minima](https://github.com/jekyll/minima)
+Hello! I'm Neeloy. I grew up in London, studied [Materials Science](https://www.msm.cam.ac.uk/undergraduate-study/general-information-current-ug-students/awards-and-prizes/prizes-2013) at Cambridge, moved to Stanford for [grad school](https://icme.stanford.edu/), worked at [Jump Trading](https://www.jumptrading.com/) for about 9 years and am currently living in New York, sitting on a [non-compete](https://en.wikipedia.org/wiki/Non-compete_clause).
 
-You can find the source code for Jekyll at
-{% include icon-github.html username="jekyll" %} /
-[jekyll](https://github.com/jekyll/jekyll)
