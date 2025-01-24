@@ -2,36 +2,83 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ongoing Improvements</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f4f4f4;
-            text-align: center;
-            padding: 50px;
-        }
-        .content {
-            background-color: white;
-            border: 2px dashed #0078D7;
-            padding: 20px;
-            margin: auto;
-            width: 80%;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        h1 {
-            color: #0078D7;
-        }
-        p {
-            color: #333;
-        }
-    </style>
+    <title>Neeloy Banerjee</title>
+    <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script data-goatcounter="https://[YOUR_CODE].goatcounter.com/count" src="//gc.zgo.at/count.js"></script>
 </head>
 <body>
-    <div class="content">
-        <h1>Ongoing Improvements Planned</h1>
-        <p>Thank you for visiting! I am currently working on some exciting stuff which has taken me away from maintaining this page.</p>
-    </div>
+    <div id="root"></div>
+    <script type="text/babel">
+        const HomePage = () => {
+          const links = [
+            {
+              title: "I tell jokes",
+              description: "And sometimes they're funny!",
+              icon: "fa-brands fa-instagram",
+              url: "https://www.instagram.com/neeloytellsjokes"
+            },
+            {
+              title: "I write",
+              description: "About math, tech, finance, and more",
+              icon: "fa-solid fa-newspaper",
+              url: "https://xquant.substack.com"
+            },
+            {
+              title: "I build",
+              description: "Gotta have a LinkedIn",
+              icon: "fa-brands fa-github",
+              url: "https://linkedin.com/in/neeloybanerjee"
+            },
+            {
+              title: "I tweet",
+              description: "Thoughts on everything",
+              icon: "fa-brands fa-twitter",
+              url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+            }
+          ];
+
+          return (
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 p-8">
+              <div className="max-w-2xl mx-auto">
+                <header className="text-center mb-16">
+                  <h1 className="text-4xl font-bold mb-4 text-gray-800">Neeloy Banerjee</h1>
+                  <p className="text-gray-600">Math • Comedy • Programming</p>
+                </header>
+
+                <div className="grid gap-6">
+                  {links.map((link, index) => (
+                    <a
+                      key={index}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block p-6 bg-white rounded-lg hover:bg-gray-50 transition-colors border border-gray-200 shadow-sm"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="text-blue-500">
+                          <i className={`${link.icon} text-xl`}></i>
+                        </div>
+                        <div>
+                          <h2 className="text-xl font-semibold mb-2 text-gray-800">{link.title}</h2>
+                          <p className="text-gray-600">{link.description}</p>
+                        </div>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        };
+
+        ReactDOM.render(
+            <HomePage />,
+            document.getElementById('root')
+        );
+    </script>
 </body>
 </html>
-
