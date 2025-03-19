@@ -1,0 +1,481 @@
+---
+permalink: /visualization.html
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Periodic Table Timeline - Neeloy Banerjee</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script data-goatcounter="https://neeloy.goatcounter.com/count" src="//gc.zgo.at/count.js"></script>
+    <style>
+        .timeline-container {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            margin-bottom: 2rem;
+        }
+        .periodic-table {
+            border-collapse: collapse;
+            margin: 0 auto;
+            max-width: 1200px;
+            background-color: #e5e7eb;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        .periodic-table td {
+            padding: 0;
+            width: 60px;
+            height: 60px;
+            text-align: center;
+            vertical-align: middle;
+            position: relative;
+        }
+        .element {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: white;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            padding: 0.25rem;
+        }
+        .element.discovered {
+            background-color: #60a5fa;
+            color: white;
+        }
+        .element:hover {
+            transform: scale(1.1);
+            z-index: 1;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .element-number {
+            font-size: 0.6rem;
+            opacity: 0.8;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+        }
+        .element-symbol {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin: 0.25rem 0;
+        }
+        .element-name {
+            font-size: 0.5rem;
+            text-align: center;
+            padding: 0 2px;
+            position: absolute;
+            bottom: 2px;
+            left: 2px;
+            right: 2px;
+        }
+        .empty-cell {
+            visibility: hidden;
+        }
+        .tooltip {
+            position: absolute;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 12px;
+            pointer-events: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 100;
+            display: none;
+            max-width: 300px;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+        .tooltip-section {
+            margin-bottom: 8px;
+        }
+        .tooltip-section:last-child {
+            margin-bottom: 0;
+        }
+        .tooltip-title {
+            font-weight: bold;
+            color: #1e40af;
+            margin-bottom: 4px;
+        }
+        .tooltip-content {
+            color: #374151;
+        }
+        /* Element categories */
+        .alkali-metal { background-color: #ff9999; }
+        .alkaline-earth { background-color: #ffdead; }
+        .transition-metal { background-color: #ffc0c0; }
+        .post-transition { background-color: #cccccc; }
+        .metalloid { background-color: #99cc99; }
+        .nonmetal { background-color: #a0ffa0; }
+        .halogen { background-color: #ffff99; }
+        .noble-gas { background-color: #c0ffff; }
+        .lanthanide { background-color: #ffbfff; }
+        .actinide { background-color: #ff99cc; }
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+            padding: 0.5rem;
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+        .legend-color {
+            width: 1rem;
+            height: 1rem;
+            border-radius: 0.25rem;
+        }
+        .legend-color.discovered {
+            background-color: #60a5fa;
+        }
+        .legend-color.undiscovered {
+            background-color: white;
+        }
+        .year-indicator {
+            position: absolute;
+            top: 0;
+            background-color: #ef4444;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+            transform: translateX(-50%);
+            pointer-events: none;
+            z-index: 3;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        // Data format for each element:
+        // {
+        //     atomicNumber: number,      // e.g., 1
+        //     symbol: string,           // e.g., "H"
+        //     name: string,             // e.g., "Hydrogen"
+        //     group: number,            // e.g., 1 (column in periodic table)
+        //     period: number,           // e.g., 1 (row in periodic table)
+        //     discoveryYear: number,    // e.g., 1766
+        //     category: string,         // e.g., "alkali-metal"
+        //     discoverer: string        // e.g., "Henry Cavendish"
+        // }
+        const VisualizationPage = () => {
+            const [elementsData, setElementsData] = React.useState([]);
+            const [selectedElement, setSelectedElement] = React.useState(null);
+            const timelineRef = React.useRef();
+            const tooltipRef = React.useRef();
+
+            React.useEffect(() => {
+                // Load data from elements.json
+                fetch('/elements.json')
+                    .then(response => response.json())
+                    .then(data => {
+                        setElementsData(data);
+                        // Sort elements by discovery year and log the earliest ones
+                        const sortedElements = [...data].sort((a, b) => a.discoveryYear - b.discoveryYear);
+                        console.log('Earliest discovered elements (excluding prehistoric):', 
+                            sortedElements
+                                .filter(e => e.discoveryYear > 0) // Exclude prehistoric elements
+                                .slice(0, 10)
+                                .map(e => `${e.name} (${e.symbol}): ${e.discoveryYear} CE`)
+                        );
+                    })
+                    .catch(error => console.error('Error loading elements data:', error));
+            }, []);
+
+            const Element = ({ element }) => {
+                const handleClick = (event) => {
+                    const tooltip = d3.select(tooltipRef.current);
+                    tooltip.style('display', 'block')
+                        .style('left', (event.pageX + 10) + 'px')
+                        .style('top', (event.pageY - 10) + 'px')
+                        .html(`
+                            <div class="tooltip-section">
+                                <div class="tooltip-title">${element.name} (${element.symbol})</div>
+                                <div class="tooltip-content">Atomic Number: ${element.atomicNumber}</div>
+                                <div class="tooltip-content">Group: ${element.group}, Period: ${element.period}</div>
+                                <div class="tooltip-content">Category: ${element.category.replace('-', ' ')}</div>
+                            </div>
+                            <div class="tooltip-section">
+                                <div class="tooltip-title">Discovery</div>
+                                <div class="tooltip-content">Year: ${element.discoveryYear}</div>
+                                <div class="tooltip-content">Location: ${element.discoveryLocation}</div>
+                                <div class="tooltip-content">${element.discoveryStory}</div>
+                            </div>
+                            <div class="tooltip-section">
+                                <div class="tooltip-title">Properties</div>
+                                <div class="tooltip-content">Room Temperature Form: ${element.roomTemperatureForm}</div>
+                                <div class="tooltip-content">Electron Configuration: ${element.electronConfiguration}</div>
+                                <div class="tooltip-content">Abundance: ${element.abundance}</div>
+                                ${element.biologicalRole ? `
+                                    <div class="tooltip-content">Biological Role: ${element.biologicalRole}</div>
+                                ` : ''}
+                                ${element.uniqueProperties ? `
+                                    <div class="tooltip-content">Unique Properties: ${element.uniqueProperties}</div>
+                                ` : ''}
+                            </div>
+                        `);
+                };
+
+                return (
+                    <div 
+                        className={`element ${element.category}`}
+                        onClick={handleClick}
+                    >
+                        <span className="element-number">{element.atomicNumber}</span>
+                        <span className="element-symbol">{element.symbol}</span>
+                        <span className="element-name">{element.name}</span>
+                    </div>
+                );
+            };
+
+            React.useEffect(() => {
+                const timeline = d3.select(timelineRef.current);
+                const width = timeline.node().getBoundingClientRect().width;
+                const height = 200;
+                const margin = { top: 20, right: 20, bottom: 30, left: 40 };
+
+                // Clear any existing SVG
+                timeline.selectAll('svg').remove();
+
+                // Create a custom scale that handles negative years (BCE) and uses log scale
+                const x = d3.scaleLinear()
+                    .domain([800, 2024])
+                    .range([margin.left, width - margin.right]);
+
+                const y = d3.scaleLinear()
+                    .domain([0, 118])
+                    .range([height - margin.bottom, margin.top]);
+
+                // Custom axis formatter
+                const xAxis = d3.axisBottom(x)
+                    .tickFormat(d => `${d} CE`);
+
+                const yAxis = d3.axisLeft(y)
+                    .tickFormat(d => `#${d}`); // Add atomic number prefix
+
+                const svg = timeline.append('svg')
+                    .attr('width', width)
+                    .attr('height', height);
+
+                // Add y-axis label
+                svg.append('text')
+                    .attr('class', 'axis-label')
+                    .attr('transform', 'rotate(-45)')
+                    .attr('y', margin.left - 40)
+                    .attr('x', -height/2)
+                    .attr('text-anchor', 'middle')
+                    .text('Atomic Number')
+                    .style('font-size', '12px')
+                    .style('fill', '#374151');
+
+                // Add the axes
+                svg.append('g')
+                    .attr('class', 'x-axis')
+                    .attr('transform', `translate(0,${height - margin.bottom})`)
+                    .call(xAxis);
+
+                svg.append('g')
+                    .attr('class', 'y-axis')
+                    .attr('transform', `translate(${margin.left},0)`)
+                    .call(yAxis);
+
+                // Add the data points
+                svg.selectAll('circle')
+                    .data(elementsData.filter(d => d.discoveryYear >= 800)) // Only show elements from 800 CE onwards
+                    .enter()
+                    .append('circle')
+                    .attr('cx', d => x(d.discoveryYear))
+                    .attr('cy', d => y(d.atomicNumber))
+                    .attr('r', 5)
+                    .attr('fill', d => {
+                        switch(d.category) {
+                            case 'alkali-metal': return '#ff9999';
+                            case 'alkaline-earth': return '#ffdead';
+                            case 'transition-metal': return '#ffc0c0';
+                            case 'post-transition': return '#cccccc';
+                            case 'metalloid': return '#99cc99';
+                            case 'nonmetal': return '#a0ffa0';
+                            case 'halogen': return '#ffff99';
+                            case 'noble-gas': return '#c0ffff';
+                            case 'lanthanide': return '#ffbfff';
+                            case 'actinide': return '#ff99cc';
+                            default: return '#60a5fa';
+                        }
+                    })
+                    .on('click', (event, d) => {
+                        const tooltip = d3.select(tooltipRef.current);
+                        tooltip.style('display', 'block')
+                            .style('left', (event.pageX + 10) + 'px')
+                            .style('top', (event.pageY - 10) + 'px')
+                            .html(`
+                                <div class="tooltip-section">
+                                    <div class="tooltip-title">${d.name} (${d.symbol})</div>
+                                    <div class="tooltip-content">Atomic Number: ${d.atomicNumber}</div>
+                                    <div class="tooltip-content">Group: ${d.group}, Period: ${d.period}</div>
+                                    <div class="tooltip-content">Category: ${d.category.replace('-', ' ')}</div>
+                                </div>
+                                <div class="tooltip-section">
+                                    <div class="tooltip-title">Discovery</div>
+                                    <div class="tooltip-content">Year: ${d.discoveryYear} CE</div>
+                                    <div class="tooltip-content">Location: ${d.discoveryLocation}</div>
+                                    <div class="tooltip-content">${d.discoveryStory}</div>
+                                </div>
+                                <div class="tooltip-section">
+                                    <div class="tooltip-title">Properties</div>
+                                    <div class="tooltip-content">Room Temperature Form: ${d.roomTemperatureForm}</div>
+                                    <div class="tooltip-content">Electron Configuration: ${d.electronConfiguration}</div>
+                                    <div class="tooltip-content">Abundance: ${d.abundance}</div>
+                                    ${d.biologicalRole ? `
+                                        <div class="tooltip-content">Biological Role: ${d.biologicalRole}</div>
+                                    ` : ''}
+                                    ${d.uniqueProperties ? `
+                                        <div class="tooltip-content">Unique Properties: ${d.uniqueProperties}</div>
+                                    ` : ''}
+                                </div>
+                            `);
+                    });
+
+                // Update hover interaction
+                svg.append('rect')
+                    .attr('width', width)
+                    .attr('height', height)
+                    .attr('fill', 'none')
+                    .attr('pointer-events', 'all')
+                    .on('mousemove', (event) => {
+                        const [mouseX] = d3.pointer(event);
+                        const currentTransform = d3.zoomTransform(svg.node());
+                        const newX = currentTransform.rescaleX(x);
+                        const year = Math.round(newX.invert(mouseX));
+                        
+                        // Update or create the year indicator
+                        let yearIndicator = svg.select('.year-indicator');
+                        if (yearIndicator.empty()) {
+                            yearIndicator = svg.append('g')
+                                .attr('class', 'year-indicator')
+                                .attr('transform', `translate(0, ${margin.top - 25})`);
+                            
+                            // Add background rectangle
+                            yearIndicator.append('rect')
+                                .attr('fill', '#ef4444')
+                                .attr('rx', 4)
+                                .attr('ry', 4)
+                                .attr('height', 20)
+                                .attr('width', 60)
+                                .attr('x', -30);
+                            
+                            // Add text
+                            yearIndicator.append('text')
+                                .attr('fill', 'white')
+                                .attr('font-size', '12px')
+                                .attr('text-anchor', 'middle')
+                                .attr('y', 14);
+                        }
+                        yearIndicator
+                            .attr('transform', `translate(${mouseX}, ${margin.top - 25})`)
+                            .select('text')
+                            .text(`${year} CE`)
+                            .style('opacity', 1);
+
+                        // Show tooltip for elements at this year
+                        const elementsAtYear = elementsData.filter(d => d.discoveryYear === year);
+                        if (elementsAtYear.length > 0) {
+                            const tooltip = d3.select(tooltipRef.current);
+                            tooltip.style('display', 'block')
+                                .style('left', (event.pageX + 10) + 'px')
+                                .style('top', (event.pageY - 10) + 'px')
+                                .html(elementsAtYear.map(d => `
+                                    <div class="tooltip-section">
+                                        <div class="tooltip-title">${d.name} (${d.symbol})</div>
+                                        <div class="tooltip-content">Atomic Number: ${d.atomicNumber}</div>
+                                        <div class="tooltip-content">Category: ${d.category.replace('-', ' ')}</div>
+                                    </div>
+                                `).join(''));
+                        }
+                    })
+                    .on('mouseleave', () => {
+                        svg.select('.year-indicator').style('opacity', 0);
+                        d3.select(tooltipRef.current).style('display', 'none');
+                    });
+
+                const zoom = d3.zoom()
+                    .scaleExtent([1, 10])
+                    .on('zoom', (event) => {
+                        const newX = event.transform.rescaleX(x);
+                        svg.select('.x-axis').call(xAxis.scale(newX));
+                        svg.selectAll('circle')
+                            .attr('cx', d => newX(d.discoveryYear));
+                    });
+
+                // Set initial zoom transform to focus on 1700-2000
+                const initialTransform = d3.zoomIdentity
+                    .scale(width / (x(2000) - x(1700)))
+                    .translate(-x(1700), 0);
+
+                svg.call(zoom)
+                   .call(zoom.transform, initialTransform);
+            }, [elementsData]);
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 p-4 sm:p-8">
+                    <div className="max-w-6xl mx-auto">
+                        <header className="text-center mb-12 sm:mb-16">
+                            <h1 className="text-5xl sm:text-6xl font-bold mb-4 text-gray-800">Periodic Table Timeline</h1>
+                            <p className="text-xl sm:text-2xl text-gray-600">Interactive Discovery Timeline</p>
+                        </header>
+
+                        <div className="bg-white rounded-lg p-6 shadow-lg">
+                            <div className="timeline-container" ref={timelineRef}>
+                            </div>
+                            <table className="periodic-table">
+                                <tbody>
+                                    {[1, 2, 3, 4, 5, 6, 7].map(period => (
+                                        <tr key={period}>
+                                            {Array.from({ length: 18 }, (_, i) => i + 1).map(group => {
+                                                const element = elementsData.find(e => e.period === period && e.group === group);
+                                                return (
+                                                    <td key={group}>
+                                                        {element ? (
+                                                            <Element element={element} />
+                                                        ) : (
+                                                            <div className="empty-cell"></div>
+                                                        )}
+                                                    </td>
+                                                );
+                                            })}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div className="tooltip" ref={tooltipRef}></div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<VisualizationPage />);
+    </script>
+</body>
+</html> 
